@@ -45,12 +45,13 @@ const styles = StyleSheet.create({
     },
     modalContainer: {
         width: '85%',
+        height: 450,
         backgroundColor: '#fff',
         borderRadius: 12,
         padding: 20,
         elevation: 10,
         alignItems: 'center',
-        maxHeight: '80%',  // Limita a altura do modal
+        maxHeight: '90%',  // Limita a altura do modal
     },
     title: {
         fontSize: 20,

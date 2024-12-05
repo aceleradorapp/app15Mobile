@@ -1,6 +1,47 @@
 import axios from 'axios';
 import LocalStorageService from '../services/storage';
 import { API_URL, STORAGE_IMAGE } from '@env';
+import { Platform } from 'react-native';
+
+export const createPost = async (title, imageUri, text) => {
+    try {
+        // Recupera o token do usuário
+        const user = await LocalStorageService.getItem('user');
+        if (!user || !user.token) {
+            throw new Error('Token não encontrado. Certifique-se de que o usuário está autenticado.');
+        }
+
+        const token = user.token;
+
+        // Ajuste para utilizar uma URI que funcione bem com o axios
+        const uriParts = imageUri.split('/');
+        const fileName = uriParts[uriParts.length - 1];
+        const adjustedUri = Platform.OS === 'ios' ? imageUri.replace('file://', '') : imageUri;
+
+        // Configura os dados para envio (multipart/form-data)
+        const formData = new FormData();
+        formData.append('title', title);
+        formData.append('image', {
+            uri: adjustedUri,
+            type: 'image/jpeg', // Substitua pelo tipo correto se necessário
+            name: fileName, // Usa o nome extraído da URI
+        });
+        formData.append('text', text);
+
+        // Fazendo a requisição POST para criar a postagem
+        const response = await axios.post(`${API_URL}/posts`, formData, {
+            headers: {
+                Authorization: `Bearer ${token}`, // Cabeçalho de autorização
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+
+        return response.data; // Retorna os dados da resposta (postagem criada)
+    } catch (error) {
+        console.error('Erro ao criar postagem:', error.response?.data || error.message);
+        throw error; // Lança o erro para ser tratado por quem chamar a função
+    }
+};
 
 export const getPostsPagination = async (start, end) => {
     try {

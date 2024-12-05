@@ -1,62 +1,42 @@
-import React, { useEffect, useState, useCallback  } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
-import { View, Text, Image, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { getPostsPagination } from '../services/posts';
-import PostItem from '../components/PostItem';
 import LocalStorageService from '../services/storage';
 import Menu from '../components/Menu';
 import { STORAGE_IMAGE } from '@env';
 
-//const STORAGE_IMAGE = 'http://192.168.98.107:3535/'
-
-const MainScreen = ({ navigation }) => {
-    const [posts, setPosts] = useState([]);
+const HomeScreen = ({ navigation }) => {
     const [userName, setUserName] = useState('');
-    const [userPhoto, setUserPhoto] = useState('')
+    const [userPhoto, setUserPhoto] = useState('');
     const [hasMessage, setHasMessage] = useState(false);
     const [isMenuVisible, setIsMenuVisible] = useState(false);
-    const [userType, setUserType] = useState('user'); 
+    const [userType, setUserType] = useState('user');
 
     useFocusEffect(
         useCallback(() => {
-            const loadPostsAsync = async () => {
-                try {
-                    const dataPosts = await getPostsPagination(0, 10);
-    
-                    setPosts(dataPosts) 
-                } catch (error) {
-                    console.error('Erro ao carregar as postagens:', error);
-                }
-            };
-            
-            loadPostsAsync();        
-    
             const loadUser = async () => {
                 const user = await LocalStorageService.getItem('user');
-                const name = user?.name?.split(' ')[0] || '';
-                const photo = STORAGE_IMAGE+user?.photo || '';
-    
+                const name = user?.name?.split(' ')[0] || 'Usuário';
+                const photo = STORAGE_IMAGE + (user?.photo || '');
+
                 setUserPhoto(photo);
                 setUserName(name);
                 setUserType(user?.type || 'user');
             };
-            loadUser();
-    
-            // Simular a verificação de mensagens (futuro: substituir por chamada de API)
+
             const checkMessages = () => {
-                // Simular estado de mensagem não lida
-                const hasUnreadMessages = Math.random() < 0.5; // Alterne entre true/false aleatoriamente
+                const hasUnreadMessages = Math.random() < 0.5;
                 setHasMessage(hasUnreadMessages);
             };
-    
+
+            loadUser();
             checkMessages();
-        
         }, [])
     );
 
     const handleMessagePress = () => {
-        navigation.navigate('Messages'); // Substituir 'Messages' pela screen que será criada no futuro
+        navigation.navigate('Messages');
     };
 
     const handleMenuPress = () => {
@@ -65,38 +45,35 @@ const MainScreen = ({ navigation }) => {
 
     const handleMenuItemPress = (item) => {
         console.log(`${item} pressionado`);
-        setIsMenuVisible(false); 
+        setIsMenuVisible(false);
         if (item === 'logout') {
             const logout = async () => {
-                await LocalStorageService.removeItem('user');  
+                await LocalStorageService.removeItem('user');
                 navigation.reset({
                     index: 0,
-                    routes: [{ name: 'Login' }], 
-                });              
+                    routes: [{ name: 'Login' }],
+                });
             };
             logout();
-        }else if (item === 'dashboard') { 
-            navigation.navigate('Dashboard'); 
-        }else if (item === 'profile') { 
-            navigation.navigate('Profile'); 
-        }else if (item === 'posts') { 
-            navigation.navigate('Posts'); 
-        }else if (item === 'account') { 
-            navigation.navigate('Home'); 
+        } else if (item === 'dashboard') {
+            navigation.navigate('Dashboard');
+        } else if (item === 'profile') {
+            navigation.navigate('Profile');
+        } else if (item === 'posts') {
+            navigation.navigate('Posts');
         }
-            
     };
 
     return (
         <View style={styles.container}>
-            {/* Perfil do usuário com ícone de menu */}
+            {/* Barra superior */}
             <View style={styles.profileHeader}>
                 <View style={styles.userInfo}>
                     <Image
-                        source={{ uri: userPhoto || 'https://via.placeholder.com/60' }} 
+                        source={{ uri: userPhoto || 'https://via.placeholder.com/60' }}
                         style={styles.profileImage}
                     />
-                    <Text style={styles.userName}>{(userName || 'Usuário').toString()}</Text>
+                    <Text style={styles.userName}>{userName}</Text>
                 </View>
 
                 <View style={styles.iconsContainer}>
@@ -105,7 +82,7 @@ const MainScreen = ({ navigation }) => {
                         <Icon
                             name="email"
                             size={28}
-                            color={hasMessage ? '#ff0000' : '#003f88'} // Destacar quando houver mensagem
+                            color={hasMessage ? '#ff0000' : '#003f88'}
                             style={styles.icon}
                         />
                     </TouchableOpacity>
@@ -117,13 +94,8 @@ const MainScreen = ({ navigation }) => {
                 </View>
             </View>
 
-            {/* Lista de postagens */}
-            <FlatList
-                data={posts}
-                renderItem={({ item }) => <PostItem post={item} />}
-                keyExtractor={(item) => item.id.toString()} // Certifique-se de usar `.toString()` para evitar erros
-                contentContainerStyle={styles.postsList}
-            />
+            {/* Componente da lista de posts será adicionado aqui posteriormente */}
+
             <Menu
                 isVisible={isMenuVisible}
                 onClose={() => setIsMenuVisible(false)}
@@ -174,12 +146,6 @@ const styles = StyleSheet.create({
     icon: {
         marginLeft: 20,
     },
-    menuIcon: {
-        padding: 5,
-    },
-    postsList: {
-        paddingBottom: 20,
-    },
 });
 
-export default MainScreen;
+export default HomeScreen;

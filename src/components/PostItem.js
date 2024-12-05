@@ -7,27 +7,25 @@ import LikesModal from './LikesModal'; // Importando o componente
 
 const PostItem = ({ post }) => {
     const [liked, setLiked] = useState(post.liked);
-    const [likes, setLikes] = useState(post.likes); // Estado local para número de curtidas
-    const [showFullText, setShowFullText] = useState(false); // Estado para controlar o texto expandido
-    const [modalVisible, setModalVisible] = useState(false); // Estado para controlar a visibilidade do modal
-    const [isRefreshing, setIsRefreshing] = useState(false); // Estado para controlar o carregamento
+    const [likes, setLikes] = useState(post.likes); 
+    const [showFullText, setShowFullText] = useState(false); 
+    const [modalVisible, setModalVisible] = useState(false); 
+    const [isRefreshing, setIsRefreshing] = useState(false); 
+    const [lastTap, setLastTap] = useState(null);
 
-    // Função para simular a atualização dos dados
+
     const handleRefresh = async () => {
-        setIsRefreshing(true); // Ativa o estado de carregamento
+        setIsRefreshing(true); 
 
-        // Simulação de chamada de API para atualizar os dados
         setTimeout(() => {
-            // Aqui você poderia fazer uma chamada real de atualização de dados
             console.log('Atualizando os dados...');
-            setIsRefreshing(false); // Desativa o estado de carregamento
-        }, 2000); // Simula um atraso de 2 segundos
+            setIsRefreshing(false); 
+        }, 2000); 
     };
 
     const handleLike = async () => {
         try {
             if (liked) {
-                // Remover o like se já foi dado
                 const response = await removeLike(post.id);
                 if (response.message === 'Like removido com sucesso.') {
                     setLiked(false);
@@ -50,21 +48,32 @@ const PostItem = ({ post }) => {
         }
     };
 
+    const handleDoubleTap = () => {
+        const now = Date.now();
+        const DOUBLE_PRESS_DELAY = 300; 
+
+        if (lastTap && (now - lastTap) < DOUBLE_PRESS_DELAY) {
+            handleLike();
+        } else {
+            setLastTap(now);
+        }
+    };
+
     const handleToggleText = () => {
-        setShowFullText(!showFullText); // Alterna entre texto completo e reduzido
+        setShowFullText(!showFullText); 
     };
 
     const handleOpenLikesModal = () => {
-        setModalVisible(true); // Abre o modal
+        setModalVisible(true); 
     };
 
     const handleCloseLikesModal = () => {
-        setModalVisible(false); // Fecha o modal
+        setModalVisible(false); 
     };
 
     return (
         <FlatList
-            data={[post]} // Passa o post como dado para o FlatList
+            data={[post]} 
             renderItem={({ item }) => (
                 <View style={styles.postContainer}>
                     {/* Imagem do usuário */}
@@ -72,9 +81,13 @@ const PostItem = ({ post }) => {
                         <Image source={{ uri: item.userImage }} style={styles.userImage} />
                         <Text style={styles.userName}>{item.userName}</Text>
                     </View>
-
-                    {/* Imagem do post */}
-                    <Image source={{ uri: item.postImage }} style={styles.postImage} />
+                    
+                    {/* **Imagem do post com suporte a toque duplo** */}
+                    <TouchableOpacity activeOpacity={1} onPress={handleDoubleTap}>
+                        
+                            <Image source={{ uri: item.postImage }} style={styles.postImage} />
+                        
+                    </TouchableOpacity>
 
                     {/* Botões de curtidas */}
                     <View style={styles.footer}>
@@ -112,7 +125,7 @@ const PostItem = ({ post }) => {
             refreshControl={
                 <RefreshControl
                     refreshing={isRefreshing}
-                    onRefresh={handleRefresh} // Passa a função de atualização para o RefreshControl
+                    onRefresh={handleRefresh}
                 />
             }
         />
@@ -149,10 +162,11 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         fontSize: 16,
     },
+
     postImage: {
         width: '100%',
-        height: 250,
-        resizeMode: 'cover',
+        height: 300,
+        resizeMode: 'cover',//'contain',
         borderWidth: 1,
         borderColor: '#e0e0e0',
     },

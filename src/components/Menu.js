@@ -6,6 +6,7 @@ const Menu = ({ isVisible, onClose, userType, onMenuItemPress }) => {
   // Itens fixos
     const menuItems = [
         { label: 'Perfil', value: 'profile', icon: 'account' },
+        { label: 'Postar', value: 'posts', icon: 'camera' },
         { label: 'Conta', value: 'account', icon: 'account-settings' },
         { label: 'Album', value: 'album', icon: 'album' },
         { label: 'Pagamento', value: 'payment', icon: 'credit-card' },        
@@ -14,6 +15,9 @@ const Menu = ({ isVisible, onClose, userType, onMenuItemPress }) => {
     // Itens adicionais para admin ou owner
     if (userType === 'admin' || userType === 'owner') {
         menuItems.push({ label: 'Dashboard', value: 'dashboard', icon: 'view-dashboard' });
+        menuItems.push({ label: 'Validar Posts', value: 'validate-posts', icon: 'check-circle' });
+        menuItems.push({ label: 'Ativar/Desativar usuário', value: 'activate-user', icon: 'account-check' });
+        menuItems.push({ label: 'Gerar código de acesso', value: 'generate-access-code', icon: 'key' });
     }
 
     menuItems.push({ label: 'Sair do aplicativo', value: 'logout', icon: 'logout' });

@@ -32,9 +32,9 @@ const LoginScreen = ({ navigation }) => {
             const data = await loginUser(email, password);            
 
             if (data.token) {
-                const { token, name, type, photo } = data;
+                const { token, name, type, photo, nickname, birthDate } = data;
 
-                LocalStorageService.setItem('user', { name, type, token, photo });
+                LocalStorageService.setItem('user', { name, type, token, photo, nickname, birthDate });
 
                 await LocalStorageService.removeItem('register');
 
