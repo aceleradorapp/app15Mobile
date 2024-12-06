@@ -1,18 +1,22 @@
 // src/components/PostItem.js
 import React, { useState, useEffect } from 'react';
-import { View, Text, Image, StyleSheet, TouchableOpacity, Alert, FlatList, RefreshControl } from 'react-native';
+import { View, Text, Image, StyleSheet, TouchableOpacity, Alert, FlatList, RefreshControl, Animated } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { addLike, removeLike, getPostById } from '../services/posts';
 import LikesModal from './LikesModal'; // Importando o componente
+import { togglePostActive } from '../services/posts';
 
-const PostItem = ({ post }) => {
+const PostItem = ({ post, onRemovePost, userType  }) => {
     const [liked, setLiked] = useState(post.liked);
     const [likes, setLikes] = useState(post.likes); 
+    const [authorPost, setAuthorPost] = useState(post.authorPost);
     const [showFullText, setShowFullText] = useState(false); 
     const [modalVisible, setModalVisible] = useState(false); 
     const [isRefreshing, setIsRefreshing] = useState(false); 
     const [lastTap, setLastTap] = useState(null);
-
+    const [heartPosition, setHeartPosition] = useState(null); // Posição do coração
+    const heartAnim = useState(new Animated.Value(0))[0]; // Valor da animação do coração
+    const opacityAnim = useState(new Animated.Value(1))[0]; // Controle de opacidade    
 
     const handleRefresh = async () => {
         setIsRefreshing(true); 
@@ -48,12 +52,42 @@ const PostItem = ({ post }) => {
         }
     };
 
-    const handleDoubleTap = () => {
+    const handleDoubleTap = (e) => {
         const now = Date.now();
         const DOUBLE_PRESS_DELAY = 300; 
 
         if (lastTap && (now - lastTap) < DOUBLE_PRESS_DELAY) {
             handleLike();
+
+            // Captura a posição do toque para exibir o coração
+            const { locationX, locationY } = e.nativeEvent;
+            setHeartPosition({ x: locationX-40, y: locationY });
+
+            // Inicia a animação
+            Animated.sequence([
+                Animated.parallel([
+                    Animated.timing(heartAnim, {
+                        toValue: 2.3,
+                        duration: 300,
+                        useNativeDriver: true,
+                    }),
+                    Animated.timing(opacityAnim, {
+                        toValue: 0.7,
+                        duration: 300,
+                        useNativeDriver: true,
+                    }),
+                ]),
+                Animated.timing(heartAnim, {
+                    toValue: 0,
+                    duration: 700,
+                    useNativeDriver: true,
+                }),
+                Animated.timing(opacityAnim, {
+                    toValue: 0,
+                    duration: 1,
+                    useNativeDriver: true,
+                }),
+            ]).start();
         } else {
             setLastTap(now);
         }
@@ -71,6 +105,29 @@ const PostItem = ({ post }) => {
         setModalVisible(false); 
     };
 
+    const handleRemovePost = async () => {
+
+        Alert.alert(
+            'Atenção',
+            'Realmente deseja excluir a postagens?',
+            [
+                {
+                    text: 'Remover',
+                    onPress: async () => {                        
+                        await togglePostActive(post.id);
+                        onRemovePost(post.id);                        
+                    }
+                },
+                {
+                    text: 'Cancelar',
+                    onPress: () => console.log("Postagem cancelada"),
+                    style: 'cancel',
+                },                        
+            ]
+        );
+
+    };
+
     return (
         <FlatList
             data={[post]} 
@@ -83,10 +140,8 @@ const PostItem = ({ post }) => {
                     </View>
                     
                     {/* **Imagem do post com suporte a toque duplo** */}
-                    <TouchableOpacity activeOpacity={1} onPress={handleDoubleTap}>
-                        
-                            <Image source={{ uri: item.postImage }} style={styles.postImage} />
-                        
+                    <TouchableOpacity activeOpacity={1} onPress={(e) => handleDoubleTap(e)}>
+                        <Image source={{ uri: item.postImage }} style={styles.postImage} />
                     </TouchableOpacity>
 
                     {/* Botões de curtidas */}
@@ -97,6 +152,13 @@ const PostItem = ({ post }) => {
                         <TouchableOpacity onPress={handleOpenLikesModal}>
                             <Text style={styles.likeCount}>{likes} curtidas</Text>
                         </TouchableOpacity>
+                        {/* Botão para remover o post */}                    
+                        {(post.authorPost || userType === 'admin' || userType === 'owner') &&  (
+                            <TouchableOpacity onPress={handleRemovePost} style={styles.removeButton}>
+                                <Icon name="trash-can-outline" size={24} color="gray" />
+                            </TouchableOpacity>
+                        )}
+
                     </View>
 
                     {/* Texto do post */}
@@ -119,6 +181,22 @@ const PostItem = ({ post }) => {
                         onClose={handleCloseLikesModal} 
                         likesUsers={item.likesUsers} 
                     />
+
+                    {/* Animação do coração */}
+                    {heartPosition && (
+                        <Animated.View 
+                            style={[styles.heartAnimation, {
+                                opacity: opacityAnim,
+                                transform: [
+                                    { translateX: heartAnim.interpolate({ inputRange: [0, 1], outputRange: [heartPosition.x, heartPosition.x] }) },
+                                    { translateY: heartAnim.interpolate({ inputRange: [0, 1], outputRange: [heartPosition.y, heartPosition.y - 50] }) },
+                                    { scale: heartAnim.interpolate({ inputRange: [0, 1], outputRange: [0.5, 1.5] }) },
+                                ]
+                            }]}
+                        >
+                            <Icon name="heart" size={50} color="red" />
+                        </Animated.View>
+                    )}
                 </View>
             )}
             keyExtractor={(item) => item.id.toString()}
@@ -144,6 +222,7 @@ const styles = StyleSheet.create({
         shadowRadius: 8,
         elevation: 5,
         paddingBottom: 10,
+        position: 'relative', // Adicionado para permitir a animação do coração
     },
     userInfo: {
         flexDirection: 'row',
@@ -162,11 +241,10 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         fontSize: 16,
     },
-
     postImage: {
         width: '100%',
         height: 300,
-        resizeMode: 'cover',//'contain',
+        resizeMode: 'cover',
         borderWidth: 1,
         borderColor: '#e0e0e0',
     },
@@ -197,6 +275,15 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: '#333',
     },
+    heartAnimation: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+    },
+    removeButton: {
+        marginLeft: 'auto',
+    },
+
 });
 
 export default PostItem;

@@ -9,7 +9,7 @@ import MainScreen from '../screens/MainScreen';
 import DashboardScreen from '../screens/DashboardScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import PostsScreen from '../screens/PostsScreen';
-import HomeScreen from '../screens/HomeScreen';
+import MyPostsScreen from '../screens/MyPostsScreen';
 
 const Stack = createStackNavigator();
 
@@ -71,12 +71,7 @@ const AppNavigator = () => {
                     name="Posts" 
                     component={PostsScreen} 
                     options={{ headerShown: false }} 
-                />
-                <Stack.Screen 
-                    name="Home" 
-                    component={HomeScreen} 
-                    options={{ headerShown: false }} 
-                />
+                />                
             </Stack.Navigator>
         </NavigationContainer>
     );

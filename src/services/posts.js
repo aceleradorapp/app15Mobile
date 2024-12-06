@@ -73,6 +73,7 @@ export const getPostsPagination = async (start, end) => {
                 author: response.data.posts[i].author,
                 likesUsers: response.data.posts[i].likes,
                 liked: response.data.posts[i].liked,
+                authorPost:response.data.posts[i].authorPost,
             };
 
             data.push(object);
@@ -86,6 +87,54 @@ export const getPostsPagination = async (start, end) => {
     }
 };
 
+// Método para buscar as postagens do usuário com paginação
+export const getUserPostsPaginated = async (start) => {
+    try {
+        // Recupera o token do usuário
+        const user = await LocalStorageService.getItem('user');
+        if (!user || !user.token) {
+            throw new Error('Token não encontrado. Certifique-se de que o usuário está autenticado.');
+        }
+
+        const token = user.token;
+
+        // Fazendo a requisição GET para obter as postagens do usuário paginadas
+        const response = await axios.get(`${API_URL}/posts/user/paginated`, {
+            params: {
+                start: start,
+            },
+            headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+        });
+
+        var data = [];
+
+        // Formata os dados conforme o padrão já usado
+        for (var i = 0; i < response.data.posts.length; i++) {
+            var object = {
+                id: response.data.posts[i].id,
+                userName: response.data.posts[i].author.name,
+                userImage: STORAGE_IMAGE + response.data.posts[i].author.profile.photo,
+                postImage: STORAGE_IMAGE + response.data.posts[i].image,
+                postText: response.data.posts[i].text,
+                likes: response.data.posts[i].likes.length,
+                author: response.data.posts[i].author,
+                likesUsers: response.data.posts[i].likes,
+                liked: response.data.posts[i].liked,
+                authorPost:response.data.posts[i].authorPost,
+            };
+
+            data.push(object);
+        }
+
+        return data; // Retorna os dados formatados
+    } catch (error) {
+        console.error('Erro ao buscar postagens do usuário paginadas:', error.response?.data || error.message);
+        throw error; // Lança o erro para ser tratado por quem chamar a função
+    }
+};
 
 export const addLike = async (postId) => {
     try {
@@ -184,5 +233,34 @@ export const getPostById = async (postId) => {
     } catch (error) {
         console.error('Erro ao buscar a postagem:', error);
         throw error;  // Lança o erro para ser tratado por quem chamar a função
+    }
+};
+
+// Método para alternar o estado "ativo" de uma postagem
+export const togglePostActive = async (postId) => {
+    try {
+        // Recupera o token do usuário
+        const user = await LocalStorageService.getItem('user');
+        if (!user || !user.token) {
+            throw new Error('Token não encontrado. Certifique-se de que o usuário está autenticado.');
+        }
+
+        const token = user.token;
+
+        // Fazendo a requisição PATCH para alternar o estado ativo da postagem
+        const response = await axios.patch(
+            `${API_URL}/posts/${postId}/toggle-active`, // Endpoint para alternar o estado ativo
+            {}, // Corpo da requisição (nenhum dado adicional, já que é apenas uma atualização de estado)
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`, // Cabeçalho de autorização
+                },
+            }
+        );
+
+        return response.data; // Retorna os dados da resposta, que podem ser usados para atualizar a UI ou realizar outra ação
+    } catch (error) {
+        console.error('Erro ao alternar o estado ativo da postagem:', error.response?.data || error.message);
+        throw error; // Lança o erro para ser tratado por quem chamar a função
     }
 };

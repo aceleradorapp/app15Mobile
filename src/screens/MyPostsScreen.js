@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback  } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
-import { View, Text, Image, StyleSheet, FlatList, TouchableOpacity, RefreshControl, ActivityIndicator } from 'react-native';
+import { View, Text, Image, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { getPostsPagination } from '../services/posts';
 import PostItem from '../components/PostItem';
@@ -10,14 +10,13 @@ import { STORAGE_IMAGE } from '@env';
 
 //const STORAGE_IMAGE = 'http://192.168.98.107:3535/'
 
-const MainScreen = ({ navigation }) => {
+const MyPostsScreen = ({ navigation }) => {
     const [posts, setPosts] = useState([]);
     const [userName, setUserName] = useState('');
     const [userPhoto, setUserPhoto] = useState('')
     const [hasMessage, setHasMessage] = useState(false);
     const [isMenuVisible, setIsMenuVisible] = useState(false);
     const [userType, setUserType] = useState('user'); 
-    const [isRefreshing, setIsRefreshing] = useState(false);
 
     useFocusEffect(
         useCallback(() => {
@@ -64,6 +63,12 @@ const MainScreen = ({ navigation }) => {
         setIsMenuVisible(true);
     };
 
+    const handlePostRemove = (postId) => {
+        console.log('handlePostRemove');
+        setPosts((prevPosts) => prevPosts.filter((post) => post.id !== postId));
+    };
+    
+
     const handleMenuItemPress = (item) => {
         console.log(`${item} pressionado`);
         setIsMenuVisible(false); 
@@ -83,71 +88,32 @@ const MainScreen = ({ navigation }) => {
         }else if (item === 'posts') { 
             navigation.navigate('Posts'); 
         }else if (item === 'account') { 
-            //navigation.navigate('Account'); 
-        }else if (item === 'myPosts') { 
-            navigation.navigate('MyPosts'); 
+            navigation.navigate('Home'); 
         }
             
-    };
-
-    const handlePostRemove = (postId) => {
-        // Atualiza o estado dos posts, removendo o post com o id fornecido
-        setPosts((prevPosts) => prevPosts.filter((post) => post.id !== postId));
-    };
-
-    const handleRefresh = async () => {
-        setIsRefreshing(true); // Ativa o spinner de carregamento
-        try {
-            const dataPosts = await getPostsPagination(0, 10); // Recarrega os posts
-            setPosts(dataPosts);
-        } catch (error) {
-            console.error('Erro ao atualizar as postagens:', error);
-        } finally {
-            setIsRefreshing(false); // Desativa o spinner de carregamento
-        }
     };
 
     return (
         <View style={styles.container}>
             {/* Perfil do usuário com ícone de menu */}
             <View style={styles.profileHeader}>
-                <View style={styles.userInfo}>
-                    <Image
-                        source={{ uri: userPhoto || 'https://via.placeholder.com/60' }} 
-                        style={styles.profileImage}
-                    />
-                    <Text style={styles.userName}>{(userName || 'Usuário').toString()}</Text>
-                </View>
-
-                <View style={styles.iconsContainer}>
-                    {/* Ícone de mensagem */}
-                    <TouchableOpacity onPress={handleMessagePress}>
-                        <Icon
-                            name="email"
-                            size={28}
-                            color={hasMessage ? '#ff0000' : '#003f88'} // Destacar quando houver mensagem
-                            style={styles.icon}
-                        />
-                    </TouchableOpacity>
-
-                    {/* Ícone de menu */}
-                    <TouchableOpacity onPress={handleMenuPress}>
-                        <Icon name="menu" size={28} color="#003f88" style={styles.icon} />
-                    </TouchableOpacity>
-                </View>
+            <View style={styles.profileHeader}>
+                <TouchableOpacity onPress={() => navigation.goBack()}>
+                    <Icon name="arrow-left" size={28} color="#003f88" style={styles.iconAarrow} />
+                </TouchableOpacity>
+                <Text style={styles.title}>Minhas postagens</Text>
+            </View>
+                
             </View>
 
             {/* Lista de postagens */}
             <FlatList
                 data={posts}
                 renderItem={({ item }) => (
-                    <PostItem post={item} onRemovePost={handlePostRemove} userType={userType}/>
+                    <PostItem post={item} onRemovePost={handlePostRemove} />
                 )}
-                keyExtractor={(item) => item.id.toString()} // Certifique-se de usar `.toString()` para evitar erros
+                keyExtractor={(item) => item.id.toString()}
                 contentContainerStyle={styles.postsList}
-                refreshing={isRefreshing}
-                onRefresh={handleRefresh}
-                ListFooterComponent={isRefreshing ? <ActivityIndicator size="large" color="#003f88" /> : null}
             />
             <Menu
                 isVisible={isMenuVisible}
@@ -163,18 +129,26 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#f4f9ff',
-        padding: 10,
+        top: 30,
+        paddingHorizontal: 5,
     },
     profileHeader: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        marginBottom: 10,
-        marginTop: 28,
         paddingHorizontal: 10,
-        paddingVertical: 5,
+        paddingVertical: 15,
         borderBottomWidth: 1,
         borderBottomColor: '#e0e0e0',
+    },
+    iconAarrow: {
+        marginRight: 10,        
+    },
+    title: {
+        fontSize: 24,        
+        color: '#003f88',
+        flex: 1,
+        textAlign: 'center',
     },
     userInfo: {
         flexDirection: 'row',
@@ -207,4 +181,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default MainScreen;
+export default MyPostsScreen;
