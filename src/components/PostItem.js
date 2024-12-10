@@ -18,6 +18,19 @@ const PostItem = ({ post, onRemovePost, userType  }) => {
     const heartAnim = useState(new Animated.Value(0))[0]; // Valor da animação do coração
     const opacityAnim = useState(new Animated.Value(1))[0]; // Controle de opacidade    
 
+    const [aspectRatio, setAspectRatio] = useState(1);  
+    
+    const handleImageLoad = (itemImage) => {
+        Image.getSize(itemImage, (width, height) => {
+            const ratio = width / height; // Calculando o aspectRatio
+            setAspectRatio(ratio); // Atualizando o estado com o aspectRatio
+            // console.log('Aspect Ratio:', ratio); // Verifique o valor no console
+        }, (error) => {
+            console.error("Erro ao carregar a imagem:", error); // Em caso de erro no carregamento
+        });
+    };
+    
+        
     const handleRefresh = async () => {
         setIsRefreshing(true); 
 
@@ -125,7 +138,6 @@ const PostItem = ({ post, onRemovePost, userType  }) => {
                 },                        
             ]
         );
-
     };
 
     return (
@@ -141,7 +153,11 @@ const PostItem = ({ post, onRemovePost, userType  }) => {
                     
                     {/* **Imagem do post com suporte a toque duplo** */}
                     <TouchableOpacity activeOpacity={1} onPress={(e) => handleDoubleTap(e)}>
-                        <Image source={{ uri: item.postImage }} style={styles.postImage} />
+                        <Image 
+                            source={{ uri: item.postImage }} 
+                            style={[styles.postImage, { aspectRatio }]} 
+                            onLoad={handleImageLoad(item.postImage)} 
+                        />
                     </TouchableOpacity>
 
                     {/* Botões de curtidas */}
@@ -206,6 +222,9 @@ const PostItem = ({ post, onRemovePost, userType  }) => {
                     onRefresh={handleRefresh}
                 />
             }
+            initialNumToRender={5} // Renderiza inicialmente 5 itens
+            maxToRenderPerBatch={5} // Atualiza em lotes de 5 itens
+            windowSize={10} // Mantém 10 itens visíveis na memória
         />
     );
 };
@@ -243,10 +262,13 @@ const styles = StyleSheet.create({
     },
     postImage: {
         width: '100%',
-        height: 300,
-        resizeMode: 'cover',
-        borderWidth: 1,
-        borderColor: '#e0e0e0',
+        resizeMode: 'contain',
+
+        // width: '100%',
+        // height: 300,
+        // resizeMode: 'cover',
+        // borderWidth: 1,
+        // borderColor: '#e0e0e0',
     },
     postTextContainer: {
         paddingHorizontal: 10,

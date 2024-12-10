@@ -87,6 +87,29 @@ export const getPostsPagination = async (start, end) => {
     }
 };
 
+export const getPosts_Pagination = async (start, end) => {
+    try {
+        const user = await LocalStorageService.getItem('user');
+        const token = user.token;
+
+        // Fazendo a requisição para obter as postagens paginadas
+        const response = await axios.get(`${API_URL}/posts/paginated`, {
+            params: {
+                start: start,
+                end: end,
+            },
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        });
+
+        return response.data;  // Retorna os dados formatados
+    } catch (error) {
+        console.error('Erro ao buscar postagens paginadas:', error);
+        throw error;  // Lança o erro para ser tratado por quem chamar a função
+    }
+};
+
 // Método para buscar as postagens do usuário com paginação
 export const getUserPostsPaginated = async (start) => {
     try {
@@ -261,6 +284,104 @@ export const togglePostActive = async (postId) => {
         return response.data; // Retorna os dados da resposta, que podem ser usados para atualizar a UI ou realizar outra ação
     } catch (error) {
         console.error('Erro ao alternar o estado ativo da postagem:', error.response?.data || error.message);
+        throw error; // Lança o erro para ser tratado por quem chamar a função
+    }
+};
+
+// Método para alternar o estado "ativo" de uma postagem
+export const togglePostApprove = async (postId) => {
+    try {
+        // Recupera o token do usuário
+        const user = await LocalStorageService.getItem('user');
+        if (!user || !user.token) {
+            throw new Error('Token não encontrado. Certifique-se de que o usuário está autenticado.');
+        }
+
+        const token = user.token;
+
+        // Fazendo a requisição PATCH para alternar o estado ativo da postagem
+        const response = await axios.patch(
+            `${API_URL}/posts/${postId}/toggle-approve`, // Endpoint para alternar o estado ativo
+            {}, // Corpo da requisição (nenhum dado adicional, já que é apenas uma atualização de estado)
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`, // Cabeçalho de autorização
+                },
+            }
+        );
+
+        return response.data; // Retorna os dados da resposta, que podem ser usados para atualizar a UI ou realizar outra ação
+    } catch (error) {
+        console.error('Erro ao alternar o estado ativo da postagem:', error.response?.data || error.message);
+        throw error; // Lança o erro para ser tratado por quem chamar a função
+    }
+};
+
+// Método para obter posts não ativos de forma paginada
+export const getPaginatedNotActivePosts = async (start, end) => {
+    try {
+        const user = await LocalStorageService.getItem('user');
+        if (!user || !user.token) {
+            throw new Error('Token não encontrado. Certifique-se de que o usuário está autenticado.');
+        }
+
+        const token = user.token;
+
+        // Fazendo a requisição GET para obter os posts paginados não ativos
+        const response = await axios.get(
+            `${API_URL}/posts/paginatedNotActive?start=${start}&end=${end}`, // URL para buscar posts
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`, // Cabeçalho de autorização com o token
+                },
+            }
+        );
+
+        return response.data; // Retorna os dados da resposta da API
+    } catch (error) {
+        console.error('Erro ao buscar posts paginados não ativos:', error.response?.data || error.message);
+        throw error; // Lança o erro para ser tratado por quem chamar a função
+    }
+};
+
+export const getPostsByAuthorPaginated = async (start, end, authorName) => {
+    try {        
+
+        // Recupera o token do usuário
+        const user = await LocalStorageService.getItem('user');
+        if (!user || !user.token) {
+            throw new Error('Token não encontrado. Certifique-se de que o usuário está autenticado.');
+        }
+
+        const token = user.token;
+
+        // Fazendo a requisição GET para obter posts paginados por autor
+        const response = await axios.get(
+            `${API_URL}/posts/paginatedByAuthor`,
+            {
+                params: {
+                    start: start,
+                    end: end,
+                    authorName: authorName,
+                },
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            }
+        );        
+
+        // Mapeia os dados retornados para um formato uniforme
+        const data = response.data.posts.map(post => ({
+            id: post.id,
+            userName: post.author.name,
+            userImage: STORAGE_IMAGE + post.author.profile.photo,
+            postImage: STORAGE_IMAGE + post.image,
+            postText: post.text,            
+        }));
+
+        return response.data; // Retorna os posts formatados
+    } catch (error) {
+        console.error('Erro ao buscar posts paginados por autor:', error.response?.data || error.message);
         throw error; // Lança o erro para ser tratado por quem chamar a função
     }
 };

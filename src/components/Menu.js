@@ -15,7 +15,7 @@ const Menu = ({ isVisible, onClose, userType, onMenuItemPress }) => {
     // Itens adicionais para admin ou owner
     if (userType === 'admin' || userType === 'owner') {
         menuItems.push({ label: 'Dashboard', value: 'dashboard', icon: 'view-dashboard' });
-        menuItems.push({ label: 'Validar Posts', value: 'validate-posts', icon: 'check-circle' });
+        menuItems.push({ label: 'Autorizar posts', value: 'authorizePosts', icon: 'check-circle' });
         menuItems.push({ label: 'Ativar/Desativar usuário', value: 'activate-user', icon: 'account-check' });
         menuItems.push({ label: 'Gerar código de acesso', value: 'generate-access-code', icon: 'key' });
     }

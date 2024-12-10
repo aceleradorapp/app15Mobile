@@ -98,3 +98,6 @@ export const getProfile = async () => {
         throw error;  // Lança o erro para ser tratado por quem chamar a função
     }
 };
+
+
+

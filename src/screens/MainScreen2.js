@@ -2,13 +2,12 @@ import React, { useEffect, useState, useCallback  } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import { View, Text, Image, StyleSheet, FlatList, TouchableOpacity, RefreshControl, ActivityIndicator } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { getPostsPagination } from '../services/posts';
-import PostItem from '../components/PostItem';
 import LocalStorageService from '../services/storage';
 import Menu from '../components/Menu';
 import { STORAGE_IMAGE } from '@env';
-
-//const STORAGE_IMAGE = 'http://192.168.98.107:3535/'
+import { getPostsPagination, getPosts_Pagination } from '../services/posts';
+import PostItem from '../components/PostItem';
+import CardPost from '../components/cardPost/Cardpost';
 
 const MainScreen = ({ navigation }) => {
     const [posts, setPosts] = useState([]);
@@ -24,9 +23,10 @@ const MainScreen = ({ navigation }) => {
         useCallback(() => {
             const loadPostsAsync = async (pageNumber = 0) => {
                 try {
-                    const dataPosts = await getPostsPagination(pageNumber, 30);
-    
-                    setPosts(dataPosts) 
+                    const dataPosts = await getPosts_Pagination(pageNumber, 30);
+                    // console.log('************************************');
+                    // console.log(dataPosts.posts);
+                    setPosts(dataPosts.posts) 
                 } catch (error) {
                     console.error('Erro ao carregar as postagens:', error);
                 }
@@ -128,7 +128,7 @@ const MainScreen = ({ navigation }) => {
                         source={{ uri: userPhoto || 'https://via.placeholder.com/60' }} 
                         style={styles.profileImage}
                     />
-                    <Text style={styles.userName}>{(userName || 'Usuário').toString()}</Text>
+                    <Text style={styles.userName}>{(userName+'' || 'Usuário').toString()}</Text>
                 </View>
 
                 <View style={styles.iconsContainer}>
@@ -153,7 +153,7 @@ const MainScreen = ({ navigation }) => {
             <FlatList
                 data={posts}
                 renderItem={({ item }) => (
-                    <PostItem post={item} onRemovePost={handlePostRemove} userType={userType}/>
+                    <CardPost item={item} onRemovePost={handlePostRemove} userType={userType}/>
                 )}
                 keyExtractor={(item) => item.id.toString()} // Certifique-se de usar `.toString()` para evitar erros
                 contentContainerStyle={styles.postsList}

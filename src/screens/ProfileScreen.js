@@ -4,6 +4,8 @@ import { Text } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import LocalStorageService from '../services/storage';
 import * as ImagePicker from "expo-image-picker";
+import * as ImageManipulator from 'expo-image-manipulator';
+
 import { STORAGE_IMAGE } from '@env'; // Certifique-se de que STORAGE_IMAGE esteja correto
 
 import { saveProfile, uploadProfilePhoto, getProfile } from '../services/profile';
@@ -54,80 +56,92 @@ const ProfileScreen = ({ navigation }) => {
     }, []);
 
     // Função para o botão salvar
-    const handleSave = async () => {
-      
-      const result = await saveProfile(nickname, birthDate);    
-
-      if(userPhotoInitial != userPhoto){
-        const resultPhoto = await uploadProfilePhoto(userPhoto);
-        setUserPhoto(resultPhoto.profile.photo);                
-      }
-
-      const getReesult = await getProfile();
-
-      const user = await LocalStorageService.getItem('user');
-      const updatedUser = {
-        ...user, // Manter os dados existentes
-        photo: getReesult.photo,
-        nickname:getReesult.nickname,
-        birthDate:getReesult.birthDate     
-      };
-
-      await LocalStorageService.setItem('user', updatedUser);
-
-      navigation.navigate('Main');
-      
-    };
-
-    const handleImageLoad = () => {
-      Alert.alert(
-          'Escolha uma opção',
-          'De onde você deseja carregar a imagem?',
-          [
-              {
-                  text: 'Cancelar',
-                  style: 'cancel',
-              },
-              {
-                  text: 'Biblioteca',
-                  onPress: () => takeLibrary(),
-              },
-              {
-                  text: 'Câmera',
-                  onPress: () => takePhoto(),
-              },
-          ]
-      );
-  };
-
-    const takeLibrary = () => {
-
-      const pickImage = async () => {
-        let result = await ImagePicker.launchImageLibraryAsync({
-          mediaTypes: ImagePicker.MediaTypeOptions.Images,
-          allowsEditing: true,
-          aspect: [1, 1],
-          quality: 1,
-        });
+const handleSave = async () => {
     
-        if (!result.canceled) {
-          setUserPhoto(result.assets[0].uri);
-        }
-      };
-      pickImage();
+    const result = await saveProfile(nickname, birthDate);    
+
+    if(userPhotoInitial != userPhoto){
+    const resultPhoto = await uploadProfilePhoto(userPhoto);
+    setUserPhoto(resultPhoto.profile.photo);                
+    }
+
+    const getReesult = await getProfile();
+
+    const user = await LocalStorageService.getItem('user');
+    const updatedUser = {
+    ...user, // Manter os dados existentes
+    photo: getReesult.photo,
+    nickname:getReesult.nickname,
+    birthDate:getReesult.birthDate     
     };
 
-    const takePhoto = async () => {
-      let result = await ImagePicker.launchCameraAsync({
+    await LocalStorageService.setItem('user', updatedUser);
+
+    navigation.navigate('Main');
+    
+};
+
+const handleImageLoad = () => {
+    Alert.alert(
+        'Escolha uma opção',
+        'De onde você deseja carregar a imagem?',
+        [
+            {
+                text: 'Cancelar',
+                style: 'cancel',
+            },
+            {
+                text: 'Biblioteca',
+                onPress: () => takeLibrary(),
+            },
+            {
+                text: 'Câmera',
+                onPress: () => takePhoto(),
+            },
+        ]
+    );
+};
+
+const takeLibrary = () => {
+
+    const pickImage = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
         aspect: [1, 1],
         quality: 1,
-      });
-  
-      if (!result.canceled) {
-        setUserPhoto(result.assets[0].uri);
-      }
+    });
+
+    if (!result.canceled) {
+        //setUserPhoto(result.assets[0].uri);
+        const manipResult = await ImageManipulator.manipulateAsync(
+            result.assets[0].uri,
+            [{ resize: { width: 150, height: 150 } }], // Redimensionar para 150x150
+            { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG } // Ajuste a compressão
+        );
+        setUserPhoto(manipResult.uri);
+    }
     };
+    pickImage();
+};
+
+const takePhoto = async () => {
+    let result = await ImagePicker.launchCameraAsync({
+    allowsEditing: true,
+    aspect: [1, 1],
+    quality: 1,
+    });
+
+    if (!result.canceled) {
+        //setUserPhoto(result.assets[0].uri);
+        const manipResult = await ImageManipulator.manipulateAsync(
+            result.assets[0].uri,
+            [{ resize: { width: 150, height: 150 } }], // Redimensionar para 150x150
+            { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG } // Ajuste a compressão
+        );
+        setUserPhoto(manipResult.uri);
+    }
+};
 
     return (
         <View style={styles.container}>
@@ -144,12 +158,12 @@ const ProfileScreen = ({ navigation }) => {
                 <View style={styles.avatar}>
                     {/* Verifique se userPhoto tem um valor válido */}
                     {userPhoto ? (
-                      <TouchableOpacity onPress={handleImageLoad}>
-                        <Image 
-                            source={{ uri: userPhoto }} // Append the timestamp to avoid caching issues
-                            style={styles.avatarImage} 
-                        />
-                      </TouchableOpacity>
+                        <TouchableOpacity onPress={handleImageLoad}>
+                            <Image 
+                                source={{ uri: userPhoto }} // Append the timestamp to avoid caching issues
+                                style={styles.avatarImage} 
+                            />
+                        </TouchableOpacity>
                     ) : (
                         <Icon name="account" size={60} color="#fff" />
                     )}
@@ -227,8 +241,8 @@ const styles = StyleSheet.create({
     },
     cameraIcon: {
         position: 'absolute',
-        right:30,
-        bottom:20
+        right:20,
+        bottom:10
     },
     avatarImage: {
         width: 150,

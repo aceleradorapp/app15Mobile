@@ -9,7 +9,7 @@ import MainScreen from '../screens/MainScreen';
 import DashboardScreen from '../screens/DashboardScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import PostsScreen from '../screens/PostsScreen';
-import MyPostsScreen from '../screens/MyPostsScreen';
+import AuthorizePostsScreen from '../screens/AuthorizePostsScreen';
 
 const Stack = createStackNavigator();
 
@@ -70,6 +70,11 @@ const AppNavigator = () => {
                 <Stack.Screen 
                     name="Posts" 
                     component={PostsScreen} 
+                    options={{ headerShown: false }} 
+                /> 
+                <Stack.Screen 
+                    name="AuthorizePosts" 
+                    component={AuthorizePostsScreen} 
                     options={{ headerShown: false }} 
                 />                
             </Stack.Navigator>
