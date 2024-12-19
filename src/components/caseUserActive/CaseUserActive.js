@@ -15,13 +15,13 @@ const CaseUserActive = ({ item, toggleActiveStatus, editUser }) => {
             {/* Botões de Ação */}
             <View style={styles.actionButtons}>
                 {/* Botão de Editar */}
-                <TouchableOpacity onPress={() => editUser(item.id)}>
+                {/* <TouchableOpacity onPress={() => editUser(item.id)}>
                     <Icon 
                         name="pencil" 
                         size={32} 
                         color="#007bff" 
                     />
-                </TouchableOpacity>
+                </TouchableOpacity> */}
                 {/* Botão de Ativo/Inativo */}
                 <TouchableOpacity onPress={() => toggleActiveStatus(item.id)}>
                     <Icon 

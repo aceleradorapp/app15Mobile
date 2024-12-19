@@ -3,15 +3,17 @@ import { useFocusEffect } from '@react-navigation/native';
 import { View, Text, Image, StyleSheet, FlatList, TouchableOpacity, RefreshControl, ActivityIndicator } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Header from '../components/header/Header';
+import FilterPosts from '../components/filter/filterPost';
 import CaseUserActive from '../components/caseUserActive/CaseUserActive';
 
 import LocalStorageService from '../services/storage';
 import { STORAGE_IMAGE } from '@env';
-import { getUsers } from '../services/user';
+import { getUsers, toggleUserActive } from '../services/user';
 
 const ActiveUser = ({ navigation }) => {    
     const [userName, setUserName] = useState('');
     const [userType, setUserType] = useState('user');
+    const [userFilter, setUserFilter] = useState('');
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [users, setUsers] = useState([]);
     const [page, setPage] = useState(0);
@@ -20,8 +22,7 @@ const ActiveUser = ({ navigation }) => {
         useCallback(() => {
             const loadPostsAsync = async (pageNumber) => {
                 try {
-                    const dataPosts = await getUsers();
-                    console.log(dataPosts);
+                    const dataPosts = await getUsers(userFilter);
                     setUsers(dataPosts);
                 } catch (error) {
                     console.error('Erro ao carregar as postagens:', error);
@@ -39,12 +40,22 @@ const ActiveUser = ({ navigation }) => {
                 setUserType(user?.type || 'user');
             };
             loadUser();
-        }, [])
+        }, [userFilter])
     );
 
-    const toggleActiveStatus = (id) => {
+    const toggleActiveStatus = async (id) => {
         console.log(`Alterar status do usuário com ID: ${id}`);
-        // Adicione a lógica para alternar o status ativo/inativo aqui
+        try {
+            const updatedUser = await toggleUserActive(id);
+            setUsers((prevUsers) =>
+                prevUsers.map((user) =>
+                    user.id === id ? { ...user, active: updatedUser.user.active } : user
+                )
+            );
+            
+        } catch (error) {
+            console.error('Erro ao carregar as postagens:', error);
+        }
     };
     
     const editUser = (id) => {
@@ -56,11 +67,11 @@ const ActiveUser = ({ navigation }) => {
     return (
         <View style={styles.container}> 
             <Header navigation={navigation} title='Usuários' />
+            <FilterPosts onFilter={setUserFilter}/>
                         
-
             <FlatList
-                data={users} // Dados da lista
-                keyExtractor={(item) => item.id.toString()} // Chave única para cada item
+                data={users}
+                keyExtractor={(item) => item.id.toString()}
                 renderItem={({ item }) => (
                     <CaseUserActive 
                         item={item} 
@@ -68,7 +79,7 @@ const ActiveUser = ({ navigation }) => {
                         editUser={editUser} 
                     />
                 )}
-                contentContainerStyle={styles.listContainer} // Estilo da lista
+                contentContainerStyle={styles.listContainer}
             />
         </View>
     );
@@ -79,9 +90,7 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: '#f4f9ff',
         top: 30,
-    },
-    
-    
+    },        
 });
 
 export default ActiveUser;
