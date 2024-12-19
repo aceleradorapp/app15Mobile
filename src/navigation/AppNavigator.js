@@ -10,6 +10,7 @@ import DashboardScreen from '../screens/DashboardScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import PostsScreen from '../screens/PostsScreen';
 import AuthorizePostsScreen from '../screens/AuthorizePostsScreen';
+import ActiveUser from '../screens/ActiveUser';
 
 const Stack = createStackNavigator();
 
@@ -75,6 +76,11 @@ const AppNavigator = () => {
                 <Stack.Screen 
                     name="AuthorizePosts" 
                     component={AuthorizePostsScreen} 
+                    options={{ headerShown: false }} 
+                />  
+                <Stack.Screen 
+                    name="ActiveUser" 
+                    component={ActiveUser} 
                     options={{ headerShown: false }} 
                 />                
             </Stack.Navigator>

@@ -19,7 +19,7 @@ class TokenValidator {
                 }
             }
         } catch (error) {
-            console.error('Erro ao validar token:', error);
+            //console.error('Erro ao validar token:', error);
 
             if (invalidRoute) {
                 navigation.navigate(invalidRoute);

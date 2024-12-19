@@ -87,6 +87,8 @@ const MainScreen = ({ navigation }) => {
             //navigation.navigate('Account'); 
         }else if (item === 'authorizePosts') { 
             navigation.navigate('AuthorizePosts'); 
+        }else if (item === 'activate-user') {
+            navigation.navigate('ActiveUser');
         }
             
     };

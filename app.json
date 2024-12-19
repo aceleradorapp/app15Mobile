@@ -13,20 +13,28 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.seunome.aplicativo"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/favicon/favicon.png",
         "backgroundColor": "#ffffff"
-      },
-      "googleServicesFile": "./google-services.json"
+      }
     },
     "web": {
       "favicon": "./assets/images/favicon/favicon.png"
     },
     "plugins": [
-      "expo-font"
-    ]
+      [
+        "onesignal-expo-plugin",
+        {
+          "mode": "development"
+        }
+      ]
+    ],
+    "extra": {
+      "oneSignalAppId": "a58ae610-f6fb-471f-9eb8-587c55fee779"
+    }
   }
 }
